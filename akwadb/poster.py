@@ -3,6 +3,7 @@ from enum import Enum
 from akwadb.annonce import TypeAnnonce
 import uuid as uuid
 import cv2
+
 from neo4jrestclient.client import GraphDatabase
 from neo4jrestclient import client
 url = "http://localhost:7474/db/data/"
@@ -10,16 +11,31 @@ username = "akwadb"
 password = "akwadb"
 gdb = GraphDatabase(url=url, username=username, password=password)
 
+def createUiid():
+    return str(uuid.uuid4())
 # Chargement for picture
-def importImage(p=[]):
+def importImageAndPath(p=[]):
+    unique = createUiid()
     index = 0
+    path = []
     while index<len(p):
         print(p[index])
         im = cv2.imread(p[index])
-        mypath='/home/archange/PycharmProjects/akwadb/akwadb/photo/'+p[index].split("/")[-1]
+        mypath='/home/archange/PycharmProjects/akwadb/akwadb/photo/'+unique+p[index].split("/")[-1]
+        mypath2='/home/archange/PycharmProjects/akwadb/akwadb/photo/'+unique+p[index].split("/")[-1]
+        path.append(mypath2)
         cv2.imwrite(mypath, im)
         index =index+1
+    return path
 
+def imagePath(p=[]):
+    path = []
+    index = 0
+    while index<len(p):
+        mypath='/home/archange/PycharmProjects/akwadb/akwadb/photo/'+p[index].split("/")[-1]
+        path.append(mypath)
+        index =index+1
+    return path
 
 class EtatPoste(Enum):
     Payer = 1
@@ -32,8 +48,8 @@ class Poster():
 
     # create a poste
     def addNoed_Poste(self,id,titre,photo,montant,date,adresse,commentaire,etatPoste,information,typeAnnonce):
-        importImage(photo)
-        myPoste = gdb.nodes.create(id=id,titre=titre,photo=photo,montant=montant,date=date,adresse=adresse,
+        photopath=importImageAndPath(photo)
+        myPoste = gdb.nodes.create(id=id,titre=titre,photo=photopath,montant=montant,date=date,adresse=adresse,
                         commentaire=commentaire,etatPoste=etatPoste,information=information,typeAnnonce=typeAnnonce)
         poster = gdb.labels.create("Poste")
         poster.add(myPoste)
